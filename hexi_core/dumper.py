@@ -8,5 +8,6 @@ def print_tree(func):
 
     cfunc = ida_hexrays.decompile(func)
 
+    print(f"func@{func.start_ea:#x}")
     visitor = dumping_tree_visitor_t()
     visitor.apply_to(cfunc.body, None)

@@ -142,7 +142,7 @@ class common_tree_visitor_t(ida_hexrays.ctree_visitor_t):
         ida_hexrays.ctree_visitor_t.__init__(
             self, ida_hexrays.CV_POST | ida_hexrays.CV_PARENTS
         )
-        self.depth = -1
+        self.depth = 0
 
     def process(self, item) -> int:
         return 0

@@ -57,7 +57,7 @@ class hexi_ui_hooks_t(ida_kernwin.UI_Hooks):
 class hexi_plugin_t(ida_idaapi.plugin_t):
     flags = ida_idaapi.PLUGIN_DRAW | ida_idaapi.PLUGIN_HIDE
     help = ""
-    comment = "Hex-Rays decompiler introspection tools"
+    comment = "Hex-Rays decompiler inspector"
     wanted_name = "hexi"
     wanted_hotkey = ""
 
@@ -78,8 +78,12 @@ class hexi_plugin_t(ida_idaapi.plugin_t):
     def init(self):
         self.ui_hooks = hexi_ui_hooks_t()
 
-        self.register_action("hexi:dump_tree", "Dump tree", dump_tree_handler_t())
-        self.register_action("hexi:view_tree", "View tree", view_tree_handler_t())
+        self.register_action(
+            "hexi:DumpPseudoTree", "Dump pseudocode tree", dump_tree_handler_t()
+        )
+        self.register_action(
+            "hexi:ViewPseudoTree", "View pseudocode tree", view_tree_handler_t()
+        )
 
         self.ui_hooks.hook()
         return ida_idaapi.PLUGIN_KEEP
