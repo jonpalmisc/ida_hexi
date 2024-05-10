@@ -2,38 +2,74 @@ from hexi_core import dumper, grapher
 
 import ida_idaapi
 import ida_kernwin
+import ida_hexrays
 
 from typing import Optional
 
 
+def get_pseudo_tree(
+    ctx: ida_kernwin.action_ctx_base_t, use_subtree: bool
+) -> Optional[ida_hexrays.citem_t]:
+    """
+    Get the pseudocode tree for an entire function or a subtree depending on
+    user preferences and the current UI context.
+    """
+
+    if ctx.widget_type != ida_kernwin.BWN_PSEUDOCODE:
+        return None
+    if not (vdui := ida_hexrays.get_widget_vdui(ctx.widget)):
+        return None
+
+    # Return entire tree if a subtree was not requested.
+    if not use_subtree:
+        return vdui.cfunc.body
+
+    # Try to determine the currently-focused subtree.
+    vdui.get_current_item(ida_hexrays.USE_KEYBOARD)
+    if vdui.item.is_citem():
+        return vdui.item.e
+
+    return None
+
+
 class dump_tree_handler_t(ida_kernwin.action_handler_t):
-    def __init__(self):
+    use_subtree: bool
+
+    def __init__(self, use_subtree: bool = False):
         ida_kernwin.action_handler_t.__init__(self)
+        self.use_subtree = use_subtree
 
     def activate(self, ctx):  # pyright: ignore
-        dumper.print_tree(ctx.cur_func)
+        if tree := get_pseudo_tree(ctx, self.use_subtree):
+            dumper.print_tree(tree)
+
         return 1
 
     def update(self, ctx):
         return (
             ida_kernwin.AST_ENABLE
-            if ctx.widget_type == ida_kernwin.BWN_PSEUDOCODE
+            if get_pseudo_tree(ctx, self.use_subtree)
             else ida_kernwin.AST_DISABLE
         )
 
 
 class view_tree_handler_t(ida_kernwin.action_handler_t):
-    def __init__(self):
+    use_subtree: bool
+
+    def __init__(self, use_subtree: bool = False):
         ida_kernwin.action_handler_t.__init__(self)
+        self.use_subtree = use_subtree
 
     def activate(self, ctx):  # pyright: ignore
-        grapher.show_tree(ctx.cur_func)
+        if tree := get_pseudo_tree(ctx, self.use_subtree):
+            grapher.show_tree(tree)
+
         return 1
 
     def update(self, ctx):
         return (
             ida_kernwin.AST_ENABLE
-            if ctx.widget_type == ida_kernwin.BWN_PSEUDOCODE
+            if get_pseudo_tree(ctx, self.use_subtree)
             else ida_kernwin.AST_DISABLE
         )
 
@@ -82,7 +118,17 @@ class hexi_plugin_t(ida_idaapi.plugin_t):
             "hexi:DumpPseudoTree", "Dump pseudocode tree", dump_tree_handler_t()
         )
         self.register_action(
+            "hexi:DumpPseudoSubtree",
+            "Dump pseudocode subtree",
+            dump_tree_handler_t(use_subtree=True),
+        )
+        self.register_action(
             "hexi:ViewPseudoTree", "View pseudocode tree", view_tree_handler_t()
+        )
+        self.register_action(
+            "hexi:ViewPseudoSubtree",
+            "View pseudocode subtree",
+            view_tree_handler_t(use_subtree=True),
         )
 
         self.ui_hooks.hook()

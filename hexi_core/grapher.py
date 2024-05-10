@@ -7,9 +7,9 @@ from hexi_core.visitor import graphing_tree_visitor_t, item_info_t
 
 
 class tree_graph_t(ida_graph.GraphViewer):
-    def __init__(self, cfunc, close_open=False):
+    def __init__(self, root, close_open=False):
         ida_graph.GraphViewer.__init__(self, "Pseudocode tree", close_open)
-        self.cfunc = cfunc
+        self.root = root
 
         self.Refresh()
 
@@ -17,7 +17,7 @@ class tree_graph_t(ida_graph.GraphViewer):
         self.Clear()
 
         visitor = graphing_tree_visitor_t(self)
-        visitor.apply_to(self.cfunc.body, None)
+        visitor.apply_to(self.root, None)
 
         return True
 
@@ -55,8 +55,7 @@ class tree_graph_t(ida_graph.GraphViewer):
         return True
 
 
-def show_tree(func):
+def show_tree(root: ida_hexrays.citem_t):
     """View a function's pseudocode tree as a graph."""
 
-    cfunc = ida_hexrays.decompile(func)
-    tree_graph_t(cfunc).Show()
+    tree_graph_t(root).Show()
