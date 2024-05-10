@@ -117,6 +117,11 @@ class item_info_t:
         match item.op:
             case ida_hexrays.cot_ptr:
                 self.props["size"] = item.ptrsize
+            case ida_hexrays.cot_memref:
+                self.props["offset"] = item.m
+            case ida_hexrays.cot_memptr:
+                self.props["offset"] = item.m
+                self.props["size"] = item.ptrsize
             case ida_hexrays.cot_num:
                 self.props["value"] = f"{item.n._value:#x}"
             case ida_hexrays.cot_obj:
