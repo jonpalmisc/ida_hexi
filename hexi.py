@@ -86,7 +86,11 @@ class hexi_ui_hooks_t(ida_kernwin.UI_Hooks):
 
         for action_id, action_name in self.popup_actions:
             ida_kernwin.attach_action_to_popup(
-                widget, popup, action_id, f"Hexi/{action_name}", ida_kernwin.SETMENU_APP
+                widget,
+                popup,
+                action_id,
+                f"&Hexi/{action_name}",
+                ida_kernwin.SETMENU_APP,
             )
 
 
@@ -103,11 +107,13 @@ class hexi_plugin_t(ida_idaapi.plugin_t):
         self,
         id: str,
         name: str,
+        help: str,
         handler,
-        shortcut: Optional[str] = None,
     ):
+        """Register an action and add it to the popup menu all at once."""
+
         ida_kernwin.register_action(
-            ida_kernwin.action_desc_t(id, name, handler, shortcut)
+            ida_kernwin.action_desc_t(id, name, handler, None, help)
         )
         self.ui_hooks.popup_actions.append((id, name))
 
@@ -115,20 +121,28 @@ class hexi_plugin_t(ida_idaapi.plugin_t):
         self.ui_hooks = hexi_ui_hooks_t()
 
         self.register_action(
-            "hexi:DumpPseudoTree", "Dump pseudocode tree", dump_tree_handler_t()
+            "hexi:ViewPseudoTree",
+            "View pseudocode ~t~ree",
+            "View the pseudocode tree as a graph",
+            view_tree_handler_t(),
+        )
+        self.register_action(
+            "hexi:ViewPseudoSubtree",
+            "View pseudocode ~s~ubtree",
+            "View the selected pseudocode subtree as a graph",
+            view_tree_handler_t(use_subtree=True),
+        )
+        self.register_action(
+            "hexi:DumpPseudoTree",
+            "Dump pseudocode tree",
+            "Dump the pseudocode tree to the output window",
+            dump_tree_handler_t(),
         )
         self.register_action(
             "hexi:DumpPseudoSubtree",
             "Dump pseudocode subtree",
+            "Dump the selected pseudocode subtree to the output window",
             dump_tree_handler_t(use_subtree=True),
-        )
-        self.register_action(
-            "hexi:ViewPseudoTree", "View pseudocode tree", view_tree_handler_t()
-        )
-        self.register_action(
-            "hexi:ViewPseudoSubtree",
-            "View pseudocode subtree",
-            view_tree_handler_t(use_subtree=True),
         )
 
         self.ui_hooks.hook()
